@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 
-function UrlForm({addUrl}) {
+function UrlForm({addUrl, setError}) {
   const [title, setTitle] = useState('');
   const [urlToShorten, setUrlToShorten] = useState('');
 
   const handleSubmit = e => {
     e.preventDefault();
+    if(!title || !urlToShorten){
+      return setError('Please fill out all applicable fields before submitting. Thanks!')
+    }
     let newUrl = {
       title,
       long_url: urlToShorten

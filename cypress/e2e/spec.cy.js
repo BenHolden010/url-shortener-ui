@@ -31,10 +31,27 @@ describe('empty spec', () => {
     cy.get('input[name="title"]').type('LadyBug')
     .get('input[name="urlToShorten"]').type('https://cdn.branchcms.com/w7EpyeBpNP-1159/images/lady-bug-on-stem-in-ny.jpg')
     .get('section').children().should('have.length',3)
+    .get('form').contains('button','Shorten Please!').click().wait('@post')
+    .get('section').children().should('have.length',4)
+    .get('section').children().last().contains('h3', "LadyBug").should('be.visible')
+    .get('section').children().last().contains('a', 'http://localhost:3001/useshorturl/4').should('be.visible')
+    .get('section').children().last().contains('p', 'https://cdn.branchcms.com/w7EpyeBpNP-1159/images/lady-bug-on-stem-in-ny.jpg').should('be.visible')
+  })
+  it('should should return a message if the server sends back a failed request', () => {
+    cy.intercept('POST', 'http://localhost:3001/api/v1/urls',{
+      statusCode: 404,
+      fixture: 'urlPostStink'
+    }).as('postStink')
+    cy.visit('http://localhost:3000/').wait('@get')
+    cy.get('input[name="title"]').type('StinkBug').should('have.value','StinkBug')
+    .get('input[name="urlToShorten"]').type('https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcSyW7Lxa75wofMrmf6R2IBxAefojPO5H2EMYXdY2AsT2wRip7RrzlnrHG_kxwAVMcBHbdo3GlYssQ0Lo5k').should('have.value','https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcSyW7Lxa75wofMrmf6R2IBxAefojPO5H2EMYXdY2AsT2wRip7RrzlnrHG_kxwAVMcBHbdo3GlYssQ0Lo5k')
+    .get('form').contains('button','Shorten Please!').click().wait('@postStink')
+    .get('.error').contains('p','Failed to fetch')
+  })
+  it('Should show an error message if the user tries to submit an incomplete form', () => {
+    cy.get('input[name="urlToShorten"]').type('https://cdn.branchcms.com/w7EpyeBpNP-1159/images/lady-bug-on-stem-in-ny.jpg')
     .get('form').contains('button','Shorten Please!').click()
-    .get('section').children().should('have.length',4).wait('@post')
-    .get('section').children().last().contains('h3', "LadyBug")
-    .get('section').children().last().contains('a', 'http://localhost:3001/useshorturl/4')
-    .get('section').children().last().contains('p', 'https://cdn.branchcms.com/w7EpyeBpNP-1159/images/lady-bug-on-stem-in-ny.jpg')
+    .get('section').children().should('have.length',3)
+    .get('.error').contains('p','Please fill out all applicable fields before submitting. Thanks!').should('be.visible')
   })
 })
